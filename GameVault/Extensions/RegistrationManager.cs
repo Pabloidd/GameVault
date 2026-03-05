@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using GameVault.Options;
+using GameVault.Repositories;
 
 namespace GameVault.Extensions
 {
@@ -12,7 +13,7 @@ namespace GameVault.Extensions
     /// Статический класс для методов расширения ,
     /// предназначенных для регистрации сервисов приложения.
     /// </summary>
-    public class RegistrationManager
+    public static class RegistrationManager
     {
         /// <summary>
         /// Метод расширения для регистрации сервисов приложения.
@@ -23,6 +24,15 @@ namespace GameVault.Extensions
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.Configure<MariaDbOptions>(configuration.GetSection("MariaDB"));
+
+            //регистрируем сервисы, Scoped — новый экземпляр на каждый HTTP-запрос 
+            services.AddScoped<ICountryRepository, CountryRepository>();
+            services.AddScoped<IGameRepository, GameRepository>();
+            services.AddScoped<IGenreRepository, GenreRepository>();
+            services.AddScoped<IPlayerRepository, PlayerRepository>();
+            services.AddScoped<IPublishersRepository, PublishersRepository>();
+            services.AddScoped<IStatisticsRepository, StatisticsRepository>();
+
             return services;
         }
     }

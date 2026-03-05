@@ -5,11 +5,13 @@ namespace GameVault.Repositories
     public interface IPlayerRepository
     {
         Task<List<Player>> GetAllPlayersAsync();
-        Task CreatePlayerAsync(string playerName);
-        Task UpdatePlayerAsync(string oldPlayerName, string newPlayerName);
-        Task DeletePlayerAsync(string playerName);
-        Task<List<Player>> GetPlayersSliceAsync(int offset);
-        Task<List<Player>> GetGamesByPlayerAsync(string playerName);
         Task<Player?> GetPlayerByNicknameAsync(string nickname);
+        Task CreatePlayerAsync(string nickname, string email, DateTime registrationDate, int level);
+        Task UpdatePlayerAsync(string nickname, string newEmail, int newLevel);
+        Task DeletePlayerAsync(string nickname);
+        Task<List<Player>> GetPlayersSliceAsync(int sliceNumber);
+        Task<List<Game>> GetPlayerGamesAsync(string nickname);
+        Task AddGameToPlayerAsync(string nickname, string gameTitle);
+        Task RemoveGameFromPlayerAsync(string nickname, string gameTitle);
     }
 }

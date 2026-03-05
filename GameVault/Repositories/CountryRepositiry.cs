@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using GameVault.Models;
-using GameVault.Repositories;
 using GameVault.Options;  
 using Microsoft.Extensions.Options;
 using System.Data;
@@ -14,31 +13,33 @@ namespace GameVault.Repositories
     public class CountryRepository : AbstractRepository, ICountryRepository
     {
         public CountryRepository(IOptions<MariaDbOptions> options)
-            : base(options.Value.ConnectionString){}
+            : base(options.Value.ConnectionString) { }
         
-
         public async Task CreateCountryAsync(string countryName)
         {
-            string sql = $"CALL CreateCountry({countryName})";
-            await ExecuteWithConnectionAsync(sql);
+            var parameters = new { p_country = countryName };
+            await ExecuteProcAsync("CreateCountry", parameters);
         }
 
         public async Task<List<Country>> GetAllCountriesAsync()
         {
-            string sql = "CALL GetAllCountries()";
-            return await QueryWithConnectionAsync<Country>(sql);
+            return await QueryProcAsync<Country>("GetAllCountries");
         }
 
         public async Task DeleteCountryAsync(string countryName)
         {
-            string sql = $"CALL DeleteCountry({countryName})";
-            await ExecuteWithConnectionAsync(sql);
+            var parameters = new { p_country = countryName };
+            await ExecuteProcAsync("DeleteCountry", parameters);
         }
 
         public async Task UpdateCountryAsync(string oldCountryName, string newCountryName)
         {
-            string sql = $"CALL UpdateCountry({oldCountryName}, {newCountryName})";
-            await ExecuteWithConnectionAsync(sql);
+            var parameters = new 
+            { 
+                p_old_country = oldCountryName,
+                p_new_country = newCountryName 
+            };
+            await ExecuteProcAsync("UpdateCountry", parameters);
         }
     }
 }

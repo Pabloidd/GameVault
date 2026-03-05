@@ -1,6 +1,3 @@
-var builder = WebApplication.CreateBuilder(args);
-var app = builder.Build();
+using GameVault.Services;
 
-app.MapGet("/", () => "Hello World!");
-
-app.Run();
+await ApplicationRunner.RunAsync(args);

@@ -5,9 +5,10 @@ namespace GameVault.Repositories
     public interface IPublishersRepository
     {
         Task<List<Publisher>> GetAllPublishersAsync();
-        Task CreatePublisherAsync(string publisherName);
-        Task UpdatePublisherAsync(string oldPublisherName, string newPublisherName);
-        Task DeletePublisherAsync(string publisherName);
-        Task<List<Publisher>> GetPublisherSliceAsync(int offset);
+        Task<List<Publisher>> GetPublishersByCountryAsync(string country);
+        Task CreatePublisherAsync(string company, string country);
+        Task UpdatePublisherAsync(string company, string newCountry);
+        Task DeletePublisherAsync(string company);
+        Task<List<Publisher>> GetPublishersSliceAsync(int sliceNumber);
     }
 }
