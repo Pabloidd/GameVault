@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using GameVault.Models;
 using GameVault.Repositories;
@@ -47,6 +46,16 @@ namespace GameVault.Controllers
             var error3 = RequireMin(request.Level, 0, "Уровень");
             if (error3 != null) return error3;
 
+            if (request.RegistrationDate < new DateTime(2000, 1, 1))
+            {
+                return BadRequest(new { message = "Дата регистрации не может быть раньше 2000 года" });
+            }
+
+            if (request.Level > 999)
+            {
+                return BadRequest(new { message = "Уровень не может быть выше 999" });
+            }
+
             return await ExecuteAsync(
                 () => _playerRepository.CreatePlayerAsync(request.Nickname, request.Email, request.RegistrationDate, request.Level),
                 $"Игрок '{request.Nickname}' успешно создан"
@@ -58,6 +67,11 @@ namespace GameVault.Controllers
         {
             var error1 = RequireString(request.Nickname, "Никнейм");
             if (error1 != null) return error1;
+
+            if (request.NewLevel > 999)
+            {
+                return BadRequest(new { message = "Уровень не может быть выше 999" });
+            }
 
             return await ExecuteAsync(
                 () => _playerRepository.UpdatePlayerAsync(request.Nickname, request.NewEmail, request.NewLevel),
