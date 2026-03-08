@@ -34,5 +34,8 @@ export const gamesApi = {
   addGenre: (gameName, genreName) => api.post('games/add-genre', { gameName, genreName }),
   
   /** Удалить жанр у игры */
-  removeGenre: (gameName, genreName) => api.delete('games/remove-genre', { data: { gameName, genreName } })
+  removeGenre: (gameName, genreName) => api.delete('games/remove-genre', { data: { gameName, genreName } }),
+
+  /** Получить все игры (для списков выбора) */
+  getAll: () => api.get('games').then(res => res.data)
 };

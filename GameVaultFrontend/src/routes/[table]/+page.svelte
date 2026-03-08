@@ -9,6 +9,7 @@
   import GamePlayersModal from '$lib/components/modals/GamePlayersModal.svelte';
   import PlayerFormModal from '$lib/components/modals/PlayerFormModal.svelte';
   import PlayerGamesModal from '$lib/components/modals/PlayerGamesModal.svelte';
+  import GamesByRelationModal from '$lib/components/modals/GamesByRelationModal.svelte';
   import DeleteConfirmModal from '$lib/components/modals/DeleteConfirmModal.svelte';
 
   let { table } = $props();
@@ -59,6 +60,8 @@
   <GamePlayersModal />
 {:else if tableStore.activeModal === 'playerGames'}
   <PlayerGamesModal />
+{:else if tableStore.activeModal === 'gamesByRelation'}
+  <GamesByRelationModal />
 {/if}
 
 {#if tableStore.activeModal === 'delete'}
