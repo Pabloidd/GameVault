@@ -1,215 +1,67 @@
-🎮 GameVault - API для работы с БД каталога игр
-📋 Описание проекта
+# 🎮 Game Vault — Каталог Игр и Статистики
+Добро пожаловать в репозиторий проекта **Game Vault**. Этот проект представляет собой полноценное полностек-приложение (Full-stack) для управления каталогом видеоигр, сбора статистики, а также отслеживания разработчиков (издателей) и игроков.
 
-GameVault - это REST API для управления каталогом компьютерных игр. Проект реализует полный CRUD функционал для работы с играми, жанрами, издателями и игроками.
-🚀 Технологии
+Проект разделен на две независимые части:
+- **Backend**: C# / ASP.NET Core (.NET 9)
+- **Frontend**: SPA на базе Svelte 5 / Vite
+- **СУБД**: MariaDB
 
-    .NET  - платформа разработки
+---
 
-    ASP.NET Core - создание Web API
+## 🏗 Серверная часть (Backend)
+Бэкенд находится в папке `GameVault` и написан на C# с использованием **ASP.NET Core (.NET 9)**. Проект использует слоистую архитектуру на базе контроллеров и репозиториев для взаимодействия с БД, без массивных ORM (или с минимальным их применением).
 
-    MariaDB - база данных
+### Структура БД и API:
+1. **Controllers (`Controllers/`)**: REST API контроллеры. Инициализируются от входящих HTTP-запросов и маршрутизируют их к соответствующим репозиториям.
+2. **Repositories (`Repositories/`)**: Слой доступа к данным. Реализуют прямое взаимодействие с MariaDB посредством SQL-запросов. Разделены по бизнес-сущностям (напр. `GameRepository`, `PlayerRepository`).
+3. **Models (`Models/`)**: Доменные POCO-классы, отражающие структуру таблиц базы данных (`Game`, `Player`, `Genre` и др.).
+4. **Request Models (`RequestModels/`)**: DTO (Data Transfer Objects) для десериализации и строгой валидации входящих данных. Обрабатываются пайплайном ASP.NET Core перед тем, как тело запроса дойдет до логики и БД.
 
-    Dapper - micro ORM для работы с БД
+### Как запустить Backend:
+1. Установите **.NET 9 SDK**.
+2. Запустите СУБД **MariaDB**.
+3. В конфигурационном файле `appsettings.json` укажите строку подключения в секции `MariaDB:ConnectionString` (напр.: `Server=172.x.x.x;Port=3306;User ID=root;Password=твой_пароль;Database=GameCatalog;`).
+4. В корневой папке бэкенда (`GameVault`) выполните:
+   ```bash
+   dotnet run
+   ```
 
-    Хранимые процедуры - вся логика работы с данными
+---
 
-📁 Структура проекта
-text
+## 🎨 Клиентская часть (Frontend)
+Фронтенд находится в папке `GameVaultFrontend`. Он реализован как Single Page Application (SPA), написанное на JavaScript с использованием фреймворка **Svelte 5** и сборщика **Vite**. 
+
+Если вы знакомы с React или Vue — подходы в Svelte очень похожи (компонентность, реактивность), но есть важное отличие: **Svelte не использует Virtual DOM**. Он компилирует компоненты в крошечный и крайне эффективный ванильный JavaScript на этапе сборки.
+
+### Ключевые аспекты архитектуры Frontend:
+1. **`src/lib/components/`**: Переиспользуемые UI-компоненты (таблицы, хедеры, модалки). В Svelte каждый файл `.svelte` инкапсулирует разметку (HTML), логику (`<script>`) и стили (`<style>`). Стили автоматически становятся scoped (изолированными) и не протекают наружу компонента.
+2. **`src/routes/`**: Роутинг. Используется `svelte-routing`. Роутер перехватывает клики по ссылкам и подменяет нужный контент динамически, без перезагрузки вкладки (переход с `/` на `/[table]`).
+3. **`src/lib/api/`**: Слой для работы с сетью. Все запросы к C#-бэкенду вынесены в отдельные файлы и реализованы через библиотеку `axios`. Файл `client.js` содержит базово настроенный инстанс клиента с предустановленным хидером `Content-Type`.
+4. **Vite Proxy**: В `vite.config.js` настроен прокси. Любые запросы фронтенда на относительные пути `/api/*` перехватываются дев-сервером Vite и перенаправляются на работающий бэкенд. Это решает проблему CORS во время разработки.
+
+### Как запустить Frontend:
+1. Установите **Node.js** (желательно последней LTS версии).
+2. В папке фронтенда (`GameVaultFrontend`) установите зависимости сборщика:
+   ```bash
+   npm install
+   ```
+3. Запустите dev-сервер:
+   ```bash
+   npm run dev
+   ```
+4. Откройте приложение в браузере (по умолчанию `http://localhost:5173`). 
+
+---
+
+## 🔄 Жизненный цикл типичного запроса
+Чтобы закрепить понимание потока данных (Data Flow), проследим, как работает подгрузка данных с сервера:
+1. Срабатывает жизненный цикл Svelte-компонента (например, при монтировании таблицы `DataTable.svelte` на экран). Svelte делает вызов через функцию-хэлпер `axios` в слой `GET /api/games`.
+2. Запрос перехватывается прокси-сервером Vite и маршрутизируется в работающий порт .NET бэкенда.
+3. ASP.NET Core роутит запрос в `GamesController`.
+4. Внутри контроллера вызывается `GameRepository.GetAll()`, который выполняет сырой `SELECT * FROM games` запрос к MariaDB.
+5. Репозиторий собирает строки БД в строго типизированные листы объектов `List<Game>` и отдает их контроллеру.
+6. ASP.NET сериализует лист в `JSON` и формирует `HTTP 200 OK` ответ.
+7. Axios на стороне браузера резолвит Promise с данными. 
+8. Реактивное состояние Svelte (обычно это обычные переменные внутри `.svelte`, обернутые в `$state()` или `$derived()` в Svelte 5) обновляется. 
+9. Svelte точечно рендерит новые строки `<tr>` прямо в реальный DOM браузера.
 ```
-GameVault/
-├── Controllers/           # Контроллеры API
-│   ├── BaseController.cs  # Базовый контроллер с общей логикой
-│   ├── CountriesController.cs
-│   ├── GamesController.cs
-│   ├── GenresController.cs
-│   ├── PlayersController.cs
-│   ├── PublishersController.cs
-│   └── StatisticsController.cs
-├── Models/                # Модели данных (соответствуют таблицам БД)
-│   ├── Country.cs
-│   ├── Game.cs
-│   ├── Genre.cs
-│   ├── Player.cs
-│   ├── Publisher.cs
-│   └── DatabaseStatistics.cs
-├── Repositories/          # Репозитории для работы с БД
-│   ├── AbstractRepository.cs  # Базовый репозиторий
-│   ├── ICountryRepository.cs
-│   ├── CountryRepository.cs
-│   ├── IGameRepository.cs
-│   ├── GameRepository.cs
-│   ├── IGenreRepository.cs
-│   ├── GenreRepository.cs
-│   ├── IPlayerRepository.cs
-│   ├── PlayerRepository.cs
-│   ├── IPublishersRepository.cs
-│   ├── PublishersRepository.cs
-│   ├── IStatisticsRepository.cs
-│   └── StatisticsRepository.cs
-├── RequestModels/         # Модели запросов (для POST/PUT)
-│   ├── CreateGameRequest.cs
-│   ├── UpdateGameRequest.cs
-│   ├── GameGenreRequest.cs
-│   ├── CreatePlayerRequest.cs
-│   ├── UpdatePlayerRequest.cs
-│   ├── PlayerGameRequest.cs
-│   ├── CreatePublisherRequest.cs
-│   ├── UpdatePublisherRequest.cs
-│   └── UpdateCountryRequest.cs
-├── Extensions/            # Методы расширения
-│   └── RegistrationManager.cs  # Регистрация сервисов в DI
-├── Options/               # Настройки приложения
-│   └── MariaDbOptions.cs
-└── Program.cs             # Точка входа
-```
-🗄️ Структура базы данных
-
-Проект использует базу данных GameCatalog со следующими таблицами:
-
-    Countries - страны
-
-    Genres - жанры игр
-
-    Publishers - издатели
-
-    Games - игры
-
-    Players - игроки
-
-    GamesGenresRelations - связь игр и жанров (многие ко многим)
-
-    PlayersGamesRelations - связь игроков и игр (многие ко многим)
-
-🔧 Установка и запуск
-Предварительные требования
-
-    .NET 8 SDK
-
-    MariaDB/MySQL сервер
-
-    База данных GameCatalog с хранимыми процедурами
-
-Настройка
-
-    Клонировать репозиторий
-
-bash
-
-git clone https://github.com/Pabloidd/GameVault.git
-cd GameVault
-
-    Настроить строку подключения в appsettings.json
-
-json
-
-{
-  "MariaDB": {
-    "ConnectionString": "Server=localhost;Database=GameCatalog;User Id=your_user;Password=your_password;"
-  }
-}
-
-    Запустить проект
-
-bash
-
-dotnet run
-
-Сервер запустится по адресу http://localhost:5120
-
-
-📡 API Endpoints
-
-```
-Countries
-Метод	Endpoint	Описание
-GET	/api/countries	Получить все страны
-POST	/api/countries	Создать новую страну
-PUT	/api/countries	Обновить страну
-DELETE	/api/countries	Удалить страну
-Genres
-Метод	Endpoint	Описание
-GET	/api/genres	Получить все жанры
-POST	/api/genres	Создать новый жанр
-PUT	/api/genres	Обновить жанр
-DELETE	/api/genres	Удалить жанр
-Games
-Метод	Endpoint	Описание
-GET	/api/games	Получить все игры
-GET	/api/games/{title}	Получить игру по названию
-POST	/api/games	Создать новую игру
-PUT	/api/games	Обновить игру
-DELETE	/api/games/{title}	Удалить игру
-GET	/api/games/slice/{sliceNumber}	Получить срез игр (пагинация)
-GET	/api/games/slice/by-genre?sliceNumber=&genreName=	Срез игр по жанру
-GET	/api/games/slice/by-publisher?sliceNumber=&publisherName=	Срез игр по издателю
-GET	/api/games/by-genre/{genreName}	Все игры жанра
-GET	/api/games/by-publisher/{publisherName}	Все игры издателя
-POST	/api/games/add-genre	Добавить жанр игре
-DELETE	/api/games/remove-genre	Удалить жанр у игры
-GET	/api/games/{gameName}/genres	Жанры игры
-GET	/api/games/{gameName}/players	Игроки, у которых есть игра
-Players
-Метод	Endpoint	Описание
-GET	/api/players	Получить всех игроков
-GET	/api/players/{nickname}	Получить игрока по никнейму
-POST	/api/players	Создать нового игрока
-PUT	/api/players	Обновить игрока
-DELETE	/api/players/{nickname}	Удалить игрока
-GET	/api/players/slice/{sliceNumber}	Срез игроков (пагинация)
-GET	/api/players/{nickname}/games	Игры игрока
-POST	/api/players/add-game	Добавить игру игроку
-DELETE	/api/players/remove-game	Удалить игру у игрока
-Publishers
-Метод	Endpoint	Описание
-GET	/api/publishers	Получить всех издателей
-GET	/api/publishers/by-country/{country}	Издатели по стране
-POST	/api/publishers	Создать издателя
-PUT	/api/publishers	Обновить издателя
-DELETE	/api/publishers/{company}	Удалить издателя
-GET	/api/publishers/slice/{sliceNumber}	Срез издателей
-Statistics
-Метод	Endpoint	Описание
-GET	/api/statistics	Статистика БД (количество записей)
-
-```
-🏗️ Архитектурные решения
-Базовые классы
-
-AbstractRepository - предоставляет унифицированные методы для работы с хранимыми процедурами:
-
-    ExecuteProcAsync - для INSERT/UPDATE/DELETE
-
-    QueryProcAsync - для SELECT списков
-
-    QuerySingleProcAsync - для SELECT одной записи
-
-BaseController - содержит общую логику контроллеров:
-
-    Методы валидации (RequireString, RequireMin, RequirePositive)
-
-    Методы выполнения с обработкой ошибок (ExecuteGetAsync, ExecuteListAsync, ExecuteAsync)
-
-Особенности реализации
-
-    Вся логика работы с данными вынесена в хранимые процедуры
-
-    Репозитории только вызывают процедуры и маппят результат
-
-    Контроллеры содержат только валидацию и вызовы репозиториев
-
-    Автоматическое управление транзакциями в репозиториях
-
-⚙️ Требования к базе данных
-
-База данных должна содержать хранимые процедуры:
-
-    CRUD операции для всех сущностей
-
-    Процедуры для связей многие-ко-многим
-
-    Процедуры с пагинацией (срезы по 15 записей)
-
-    Процедура статистики
-
-

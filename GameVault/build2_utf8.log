@@ -1,0 +1,10 @@
+﻿  ╨Ю╨┐╤А╨╡╨┤╨╡╨╗╨╡╨╜╨╕╨╡ ╨┐╤А╨╛╨╡╨║╤В╨╛╨▓ ╨┤╨╗╤П ╨▓╨╛╤Б╤Б╤В╨░╨╜╨╛╨▓╨╗╨╡╨╜╨╕╤П...
+C:\Users\Pabloid\scoop\apps\dotnet-sdk\current\sdk\10.0.201\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.DefaultItems.Shared.targets(80,5): error MSB4062: ╨Э╨╡╨▓╨╛╨╖╨╝╨╛╨╢╨╜╨╛ ╨╖╨░╨│╤А╤Г╨╖╨╕╤В╤М ╨╖╨░╨┤╨░╤З╤Г "CheckIfPackageReferenceShouldBeFrameworkReference" ╨╕╨╖ ╤Б╨▒╨╛╤А╨║╨╕ "C:\Users\Pabloid\scoop\apps\dotnet-sdk\current\sdk\10.0.201\Sdks\Microsoft.NET.Sdk\targets\..\tools\net10.0\Microsoft.NET.Build.Tasks.dll". Could not load file or assembly 'System.Runtime, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. ╨Э╨╡ ╤Г╨┤╨░╨╡╤В╤Б╤П ╨╜╨░╨╣╤В╨╕ ╤Г╨║╨░╨╖╨░╨╜╨╜╤Л╨╣ ╤Д╨░╨╣╨╗. ╨Я╤А╨╛╨▓╨╡╤А╤М╤В╨╡ ╨┐╤А╨░╨▓╨╕╨╗╤М╨╜╨╛╤Б╤В╤М ╨╛╨▒╤К╤П╨▓╨╗╨╡╨╜╨╕╤П <UsingTask>, ╨┤╨╛╤Б╤В╤Г╨┐╨╜╨╛╤Б╤В╤М ╤Б╨▒╨╛╤А╨║╨╕ ╤Б╨╛ ╨▓╤Б╨╡╨╝╨╕ ╨╡╨╡ ╨╖╨░╨▓╨╕╤Б╨╕╨╝╨╛╤Б╤В╤П╨╝╨╕ ╨╕ ╨╜╨░╨╗╨╕╤З╨╕╨╡ ╨▓ ╨╖╨░╨┤╨░╤З╨╡ ╨╛╨▒╤Й╨╡╨│╨╛ ╨║╨╗╨░╤Б╤Б╨░, ╤А╨╡╨░╨╗╨╕╨╖╤Г╤О╤Й╨╡╨│╨╛ Microsoft.Build.Framework.ITask. [C:\Users\Pabloid\Desktop\workspace\projects\GameVault\GameVault.csproj]
+
+╨Ю╤И╨╕╨▒╨║╨░ ╤Б╨▒╨╛╤А╨║╨╕.
+
+C:\Users\Pabloid\scoop\apps\dotnet-sdk\current\sdk\10.0.201\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.DefaultItems.Shared.targets(80,5): error MSB4062: ╨Э╨╡╨▓╨╛╨╖╨╝╨╛╨╢╨╜╨╛ ╨╖╨░╨│╤А╤Г╨╖╨╕╤В╤М ╨╖╨░╨┤╨░╤З╤Г "CheckIfPackageReferenceShouldBeFrameworkReference" ╨╕╨╖ ╤Б╨▒╨╛╤А╨║╨╕ "C:\Users\Pabloid\scoop\apps\dotnet-sdk\current\sdk\10.0.201\Sdks\Microsoft.NET.Sdk\targets\..\tools\net10.0\Microsoft.NET.Build.Tasks.dll". Could not load file or assembly 'System.Runtime, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. ╨Э╨╡ ╤Г╨┤╨░╨╡╤В╤Б╤П ╨╜╨░╨╣╤В╨╕ ╤Г╨║╨░╨╖╨░╨╜╨╜╤Л╨╣ ╤Д╨░╨╣╨╗. ╨Я╤А╨╛╨▓╨╡╤А╤М╤В╨╡ ╨┐╤А╨░╨▓╨╕╨╗╤М╨╜╨╛╤Б╤В╤М ╨╛╨▒╤К╤П╨▓╨╗╨╡╨╜╨╕╤П <UsingTask>, ╨┤╨╛╤Б╤В╤Г╨┐╨╜╨╛╤Б╤В╤М ╤Б╨▒╨╛╤А╨║╨╕ ╤Б╨╛ ╨▓╤Б╨╡╨╝╨╕ ╨╡╨╡ ╨╖╨░╨▓╨╕╤Б╨╕╨╝╨╛╤Б╤В╤П╨╝╨╕ ╨╕ ╨╜╨░╨╗╨╕╤З╨╕╨╡ ╨▓ ╨╖╨░╨┤╨░╤З╨╡ ╨╛╨▒╤Й╨╡╨│╨╛ ╨║╨╗╨░╤Б╤Б╨░, ╤А╨╡╨░╨╗╨╕╨╖╤Г╤О╤Й╨╡╨│╨╛ Microsoft.Build.Framework.ITask. [C:\Users\Pabloid\Desktop\workspace\projects\GameVault\GameVault.csproj]
+    ╨Я╤А╨╡╨┤╤Г╨┐╤А╨╡╨╢╨┤╨╡╨╜╨╕╨╣: 0
+    ╨Ю╤И╨╕╨▒╨╛╨║: 1
+
+╨Я╤А╨╛╤И╨╗╨╛ ╨▓╤А╨╡╨╝╨╡╨╜╨╕ 00:00:00.35

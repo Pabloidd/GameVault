@@ -1,43 +1,68 @@
-# Svelte + Vite
+# 🎮 Game Vault — Каталог Игр и Статистики
 
-This template should help get you started developing with Svelte in Vite.
+Привет! Добро пожаловать в репозиторий проекта **Game Vault**. Этот проект представляет собой полноценное полностек-приложение (Full-stack) для управления каталогом видеоигр, сбора статистики, а также отслеживания разработчиков (издателей) и игроков.
 
-## Recommended IDE Setup
+Проект разделен на две независимые части:
+- **Backend**: C# / ASP.NET Core (.NET 9)
+- **Frontend**: SPA на базе Svelte 5 / Vite
+- **СУБД**: MariaDB
 
-[VS Code](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode).
+---
 
-## Need an official Svelte framework?
+## 🏗 Серверная часть (Backend)
+Бэкенд находится в папке `GameVault` и написан на C# с использованием **ASP.NET Core (.NET 9)**. Проект использует слоистую архитектуру на базе контроллеров и репозиториев для взаимодействия с БД, без массивных ORM (или с минимальным их применением).
 
-Check out [SvelteKit](https://github.com/sveltejs/kit#readme), which is also powered by Vite. Deploy anywhere with its serverless-first approach and adapt to various platforms, with out of the box support for TypeScript, SCSS, and Less, and easily-added support for mdsvex, GraphQL, PostCSS, Tailwind CSS, and more.
+### Структура БД и API:
+1. **Controllers (`Controllers/`)**: REST API контроллеры. Инициализируются от входящих HTTP-запросов и маршрутизируют их к соответствующим репозиториям.
+2. **Repositories (`Repositories/`)**: Слой доступа к данным. Реализуют прямое взаимодействие с MariaDB посредством SQL-запросов. Разделены по бизнес-сущностям (напр. `GameRepository`, `PlayerRepository`).
+3. **Models (`Models/`)**: Доменные POCO-классы, отражающие структуру таблиц базы данных (`Game`, `Player`, `Genre` и др.).
+4. **Request Models (`RequestModels/`)**: DTO (Data Transfer Objects) для десериализации и строгой валидации входящих данных. Обрабатываются пайплайном ASP.NET Core перед тем, как тело запроса дойдет до логики и БД.
 
-## Technical considerations
+### Как запустить Backend:
+1. Установите **.NET 9 SDK**.
+2. Запустите СУБД **MariaDB**.
+3. В конфигурационном файле `appsettings.json` укажите строку подключения в секции `MariaDB:ConnectionString` (напр.: `Server=172.x.x.x;Port=3306;User ID=root;Password=твой_пароль;Database=GameCatalog;`).
+4. В корневой папке бэкенда (`GameVault`) выполните:
+   ```bash
+   dotnet run
+   ```
 
-**Why use this over SvelteKit?**
+---
 
-- It brings its own routing solution which might not be preferable for some users.
-- It is first and foremost a framework that just happens to use Vite under the hood, not a Vite app.
+## 🎨 Клиентская часть (Frontend)
+Фронтенд находится в папке `GameVaultFrontend`. Он реализован как Single Page Application (SPA), написанное на JavaScript с использованием фреймворка **Svelte 5** и сборщика **Vite**. 
 
-This template contains as little as possible to get started with Vite + Svelte, while taking into account the developer experience with regards to HMR and intellisense. It demonstrates capabilities on par with the other `create-vite` templates and is a good starting point for beginners dipping their toes into a Vite + Svelte project.
+Если вы знакомы с React или Vue — подходы в Svelte очень похожи (компонентность, реактивность), но есть важное отличие: **Svelte не использует Virtual DOM**. Он компилирует компоненты в крошечный и крайне эффективный ванильный JavaScript на этапе сборки.
 
-Should you later need the extended capabilities and extensibility provided by SvelteKit, the template has been structured similarly to SvelteKit so that it is easy to migrate.
+### Ключевые аспекты архитектуры Frontend:
+1. **`src/lib/components/`**: Переиспользуемые UI-компоненты (таблицы, хедеры, модалки). В Svelte каждый файл `.svelte` инкапсулирует разметку (HTML), логику (`<script>`) и стили (`<style>`). Стили автоматически становятся scoped (изолированными) и не протекают наружу компонента.
+2. **`src/routes/`**: Роутинг. Используется `svelte-routing`. Роутер перехватывает клики по ссылкам и подменяет нужный контент динамически, без перезагрузки вкладки (переход с `/` на `/[table]`).
+3. **`src/lib/api/`**: Слой для работы с сетью. Все запросы к C#-бэкенду вынесены в отдельные файлы и реализованы через библиотеку `axios`. Файл `client.js` содержит базово настроенный инстанс клиента с предустановленным хидером `Content-Type`.
+4. **Vite Proxy**: В `vite.config.js` настроен прокси. Любые запросы фронтенда на относительные пути `/api/*` перехватываются дев-сервером Vite и перенаправляются на работающий бэкенд. Это решает проблему CORS во время разработки.
 
-**Why include `.vscode/extensions.json`?**
+### Как запустить Frontend:
+1. Установите **Node.js** (желательно последней LTS версии).
+2. В папке фронтенда (`GameVaultFrontend`) установите зависимости сборщика:
+   ```bash
+   npm install
+   ```
+3. Запустите dev-сервер:
+   ```bash
+   npm run dev
+   ```
+4. Откройте приложение в браузере (по умолчанию `http://localhost:5173`). 
 
-Other templates indirectly recommend extensions via the README, but this file allows VS Code to prompt the user to install the recommended extension upon opening the project.
+---
 
-**Why enable `checkJs` in the JS template?**
-
-It is likely that most cases of changing variable types in runtime are likely to be accidental, rather than deliberate. This provides advanced typechecking out of the box. Should you like to take advantage of the dynamically-typed nature of JavaScript, it is trivial to change the configuration.
-
-**Why is HMR not preserving my local component state?**
-
-HMR state preservation comes with a number of gotchas! It has been disabled by default in both `svelte-hmr` and `@sveltejs/vite-plugin-svelte` due to its often surprising behavior. You can read the details [here](https://github.com/sveltejs/svelte-hmr/tree/master/packages/svelte-hmr#preservation-of-local-state).
-
-If you have state that's important to retain within a component, consider creating an external store which would not be replaced by HMR.
-
-```js
-// store.js
-// An extremely simple external store
-import { writable } from 'svelte/store'
-export default writable(0)
+## 🔄 Жизненный цикл типичного запроса
+Чтобы закрепить понимание потока данных (Data Flow), проследим, как работает подгрузка данных с сервера:
+1. Срабатывает жизненный цикл Svelte-компонента (например, при монтировании таблицы `DataTable.svelte` на экран). Svelte делает вызов через функцию-хэлпер `axios` в слой `GET /api/games`.
+2. Запрос перехватывается прокси-сервером Vite и маршрутизируется в работающий порт .NET бэкенда.
+3. ASP.NET Core роутит запрос в `GamesController`.
+4. Внутри контроллера вызывается `GameRepository.GetAll()`, который выполняет сырой `SELECT * FROM games` запрос к MariaDB.
+5. Репозиторий собирает строки БД в строго типизированные листы объектов `List<Game>` и отдает их контроллеру.
+6. ASP.NET сериализует лист в `JSON` и формирует `HTTP 200 OK` ответ.
+7. Axios на стороне браузера резолвит Promise с данными. 
+8. Реактивное состояние Svelte (обычно это обычные переменные внутри `.svelte`, обернутые в `$state()` или `$derived()` в Svelte 5) обновляется. 
+9. Svelte точечно рендерит новые строки `<tr>` прямо в реальный DOM браузера.
 ```
