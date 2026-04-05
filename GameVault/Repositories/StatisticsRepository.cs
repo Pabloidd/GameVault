@@ -5,20 +5,24 @@ using System.Threading.Tasks;
 using GameVault.Models;
 using GameVault.Options;
 using Microsoft.Extensions.Options;
-using System.Data;
-using Dapper;
 
 namespace GameVault.Repositories
 {
+    /// <summary>
+    /// Репозиторий для получения статистики по базе данных.
+    /// </summary>
     public class StatisticsRepository : AbstractRepository, IStatisticsRepository
     {
         public StatisticsRepository(IOptions<MariaDbOptions> options)
-            : base(options.Value.ConnectionString) { }
+            : base(options) { }
 
+        /// <summary>
+        /// Получает общую статистику базы данных.
+        /// </summary>
+        /// <returns>Объект с количеством записей во всех таблицах.</returns>
         public async Task<DatabaseStatistics?> GetDatabaseStatisticsAsync()
         {
-            var result = await QuerySingleProcAsync<DatabaseStatistics>("GetDatabaseStatistics");
-            return result;
+            return await QuerySingleProcAsync<DatabaseStatistics>("GetDatabaseStatistics");
         }
     }
 }

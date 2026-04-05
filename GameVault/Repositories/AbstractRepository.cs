@@ -1,17 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Dapper;
 using MySqlConnector;
 using System.Data;
-using Dapper;
-using System.Transactions;
+using Microsoft.Extensions.Options;
+using GameVault.Options;
 
 namespace GameVault.Repositories
 {
     /// <summary>
     /// Абстрактный базовый класс для всех репозиториев.
     /// Предоставляет унифицированные методы для работы с хранимыми процедурами в БД MariaDB/MySQL.
+    /// Единая точка управления соединениями и транзакциями.
     /// </summary>
     public abstract class AbstractRepository
     {
@@ -23,17 +21,54 @@ namespace GameVault.Repositories
         /// <summary>
         /// Конструктор базового репозитория.
         /// </summary>
-        /// <param name="connectionString">Строка подключения к БД, получаемая из конфигурации.</param>
-        protected AbstractRepository(string connectionString)
+        /// <param name="options">Настройки подключения к MariaDB.</param>
+        protected AbstractRepository(IOptions<MariaDbOptions> options)
         {
-            _connectionString = connectionString;
+            _connectionString = options.Value.ConnectionString;
+        }
+
+        /// <summary>
+        /// Метод, который управляет соединением и транзакцией.
+        /// Принимает функцию, которая будет выполняться внутри транзакции.
+        /// Автоматически выполняет Commit при успехе или Rollback при ошибке.
+        /// </summary>
+        /// <typeparam name="T">Тип возвращаемого значения.</typeparam>
+        /// <param name="action">Асинхронная функция, получающая соединение и транзакцию.</param>
+        /// <returns>Результат выполнения action.</returns>
+        /// <exception cref="Exception">Пробрасывает исключение от БД при ошибке выполнения.</exception>
+        /// <remarks>
+        /// Пример использования:
+        /// <code>
+        /// var result = await ExecuteInTransactionAsync(async (connection, transaction) =>
+        /// {
+        ///     return await connection.QueryAsync&lt;Game&gt;("GetAllGames", transaction: transaction);
+        /// });
+        /// </code>
+        /// </remarks>
+        protected async Task<T> ExecuteInTransactionAsync<T>(
+            Func<MySqlConnection, MySqlTransaction, Task<T>> action)
+        {
+            using var connection = new MySqlConnection(_connectionString);
+            await connection.OpenAsync();
+            using var transaction = connection.BeginTransaction();
+
+            try
+            {
+                var result = await action(connection, transaction);
+                transaction.Commit();
+                return result;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
         }
 
         /// <summary>
         /// Выполняет хранимую процедуру, которая НЕ ВОЗВРАЩАЕТ данные (INSERT, UPDATE, DELETE).
-        /// Автоматически управляет транзакцией: commit при успехе, rollback при ошибке.
+        /// Автоматически управляет транзакцией.
         /// </summary>
-        /// <typeparam name="T">Тип параметров (обычно анонимный объект).</typeparam>
         /// <param name="storedProc">Название хранимой процедуры в БД (например, "CreateCountry").</param>
         /// <param name="parameters">Объект с параметрами для процедуры. Имена свойств должны совпадать с именами параметров процедуры (с префиксом @).</param>
         /// <returns>Task, представляющий асинхронную операцию.</returns>
@@ -47,11 +82,7 @@ namespace GameVault.Repositories
         /// </remarks>
         protected async Task ExecuteProcAsync(string storedProc, object parameters)
         {
-            using var connection = new MySqlConnection(_connectionString);
-            await connection.OpenAsync();
-            using var transaction = connection.BeginTransaction();
-            
-            try
+            await ExecuteInTransactionAsync(async (connection, transaction) =>
             {
                 await connection.ExecuteAsync(
                     storedProc,
@@ -59,15 +90,10 @@ namespace GameVault.Repositories
                     transaction,
                     commandType: CommandType.StoredProcedure
                 );
-                transaction.Commit();
-            }
-            catch
-            {
-                transaction.Rollback();
-                throw;
-            }
+                return true; // заглушка, т.к. Task<T> требует возврата
+            });
         }
-        
+
         /// <summary>
         /// Выполняет хранимую процедуру, которая ВОЗВРАЩАЕТ СПИСОК ОБЪЕКТОВ (SELECT нескольких записей).
         /// Автоматически маппит результат на указанный тип с помощью Dapper.
@@ -88,13 +114,10 @@ namespace GameVault.Repositories
         /// var games = await QueryProcAsync&lt;Game&gt;("GetGamesByGenre", parameters);
         /// </code>
         /// </remarks>
-        protected async Task<List<T>> QueryProcAsync<T>(string storedProc, object? parameters = null) where T : class
+        protected async Task<List<T>> QueryProcAsync<T>(string storedProc, object? parameters = null)
+            where T : class
         {
-            using var connection = new MySqlConnection(_connectionString);
-            await connection.OpenAsync();
-            using var transaction = connection.BeginTransaction();
-            
-            try
+            return await ExecuteInTransactionAsync(async (connection, transaction) =>
             {
                 var result = await connection.QueryAsync<T>(
                     storedProc,
@@ -102,16 +125,10 @@ namespace GameVault.Repositories
                     transaction,
                     commandType: CommandType.StoredProcedure
                 );
-                transaction.Commit();
-                return result.ToList();
-            }
-            catch
-            {
-                transaction.Rollback();
-                throw;
-            }
+                return result.AsList();
+            });
         }
-        
+
         /// <summary>
         /// Выполняет хранимую процедуру, которая ВОЗВРАЩАЕТ ОДИН ОБЪЕКТ или NULL (SELECT одной записи).
         /// Автоматически маппит результат на указанный тип с помощью Dapper.
@@ -132,28 +149,18 @@ namespace GameVault.Repositories
         /// }
         /// </code>
         /// </remarks>
-        protected async Task<T?> QuerySingleProcAsync<T>(string storedProc, object? parameters = null) where T : class
+        protected async Task<T?> QuerySingleProcAsync<T>(string storedProc, object? parameters = null)
+            where T : class
         {
-            using var connection = new MySqlConnection(_connectionString);
-            await connection.OpenAsync();
-            using var transaction = connection.BeginTransaction();
-            
-            try
+            return await ExecuteInTransactionAsync(async (connection, transaction) =>
             {
-                var result = await connection.QueryFirstOrDefaultAsync<T>(
+                return await connection.QueryFirstOrDefaultAsync<T>(
                     storedProc,
                     parameters,
                     transaction,
                     commandType: CommandType.StoredProcedure
                 );
-                transaction.Commit();
-                return result;
-            }
-            catch
-            {
-                transaction.Rollback();
-                throw;
-            }
+            });
         }
     }
 }
